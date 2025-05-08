@@ -1,0 +1,373 @@
+/* API Documentation Styles */
+:root {
+    --primary-color: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary-color: #10b981;
+    --text-color: #1f2937;
+    --text-light: #6b7280;
+    --bg-color: #ffffff;
+    --bg-light: #f9fafb;
+    --bg-dark: #f3f4f6;
+    --border-color: #e5e7eb;
+    --code-bg: #f1f5f9;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --radius: 6px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+      "Helvetica Neue", sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  header {
+    background-color: var(--bg-light);
+    border-bottom: 1px solid var(--border-color);
+    padding: 20px 0;
+    margin-bottom: 40px;
+  }
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color);
+  }
+  
+  .version {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  nav {
+    background-color: var(--bg-light);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  
+  .nav-content {
+    display: flex;
+    overflow-x: auto;
+    padding: 10px 0;
+  }
+  
+  .nav-link {
+    padding: 8px 16px;
+    margin-right: 10px;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: var(--radius);
+    white-space: nowrap;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .nav-link:hover {
+    background-color: var(--bg-dark);
+  }
+  
+  .nav-link.active {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  main {
+    padding: 20px 0 60px;
+  }
+  
+  section {
+    margin-bottom: 40px;
+  }
+  
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-bottom: 16px;
+    font-weight: 600;
+  }
+  
+  h1 {
+    font-size: 32px;
+    margin-bottom: 24px;
+  }
+  
+  h2 {
+    font-size: 24px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-top: 40px;
+  }
+  
+  h3 {
+    font-size: 20px;
+    margin-top: 32px;
+  }
+  
+  h4 {
+    font-size: 18px;
+    margin-top: 24px;
+  }
+  
+  p {
+    margin-bottom: 16px;
+  }
+  
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  code {
+    font-family: "Fira Code", "Courier New", Courier, monospace;
+    background-color: var(--code-bg);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  pre {
+    background-color: var(--code-bg);
+    padding: 16px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    margin-bottom: 24px;
+  }
+  
+  pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: 14px;
+  }
+  
+  .endpoint {
+    margin-bottom: 32px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  
+  .endpoint-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--bg-light);
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .http-method {
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-right: 12px;
+    font-size: 14px;
+    min-width: 60px;
+    text-align: center;
+  }
+  
+  .get {
+    background-color: #93c5fd;
+    color: #1e40af;
+  }
+  
+  .post {
+    background-color: #a7f3d0;
+    color: #065f46;
+  }
+  
+  .put {
+    background-color: #fcd34d;
+    color: #92400e;
+  }
+  
+  .delete {
+    background-color: #fca5a5;
+    color: #b91c1c;
+  }
+  
+  .endpoint-path {
+    font-family: "Fira Code", monospace;
+    font-weight: 500;
+  }
+  
+  .endpoint-body {
+    padding: 16px;
+  }
+  
+  .endpoint-description {
+    margin-bottom: 16px;
+  }
+  
+  .params-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+  }
+  
+  .params-table th,
+  .params-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .params-table th {
+    background-color: var(--bg-light);
+    font-weight: 600;
+  }
+  
+  .param-name {
+    font-family: "Fira Code", monospace;
+    font-weight: 500;
+  }
+  
+  .param-type {
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  
+  .param-required {
+    background-color: var(--error-color);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .param-optional {
+    background-color: var(--text-light);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .response-example {
+    margin-top: 16px;
+  }
+  
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
+  }
+  
+  .tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+  }
+  
+  .tab.active {
+    border-bottom-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+  
+  .tab-content {
+    display: none;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  .websocket-event {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--bg-light);
+  }
+  
+  .event-name {
+    font-family: "Fira Code", monospace;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .event-direction {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  
+  .client-to-server {
+    background-color: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .server-to-client {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+  
+  footer {
+    background-color: var(--bg-light);
+    border-top: 1px solid var(--border-color);
+    padding: 20px 0;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  
+  @media (max-width: 768px) {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .version {
+      margin-top: 8px;
+    }
+  
+    .endpoint-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .http-method {
+      margin-bottom: 8px;
+    }
+  }
+  

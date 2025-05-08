@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Behavior Scoring API Documentation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/api-docs.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">Driver Behavior Scoring API</div>
+            <div class="version">v1.0.0</div>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container nav-content">
+            <a href="#introduction" class="nav-link active">Introduction</a>
+            <a href="#authentication" class="nav-link">Authentication</a>
+            <a href="#trips" class="nav-link">Trips</a>
+            <a href="#data" class="nav-link">Data</a>
+            <a href="#scores" class="nav-link">Scores</a>
+            <a href="#model" class="nav-link">Model</a>
+            <a href="#websockets" class="nav-link">WebSockets</a>
+            <a href="#errors" class="nav-link">Errors</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="introduction">
+            <h1>Driver Behavior Scoring API</h1>
+            <p>
+                This API provides endpoints for analyzing and scoring driver behavior based on motion sensor data.
+                It supports both REST API and WebSocket interfaces for real-time data processing and feedback.
+            </p>
+            <p>
+                The system analyzes accelerometer and gyroscope data to detect driving events such as harsh acceleration,
+                braking, cornering, and phone usage, and provides comprehensive scoring across multiple driving aspects.
+            </p>
+
+            <h3>Base URL</h3>
+            <pre><code>http://localhost:5000/api</code></pre>
+
+            <h3>Data Format</h3>
+            <p>The API accepts and returns JSON data. All timestamps are in milliseconds since the Unix epoch.</p>
+        </section>
+
+        <section id="authentication">
+            <h2>Authentication</h2>
+            <p>
+                Currently, the API does not require authentication. This is suitable for development and testing,
+                but for production use, you should implement an authentication mechanism.
+            </p>
+        </section>
+
+        <section id="trips">
+            <h2>Trip Management</h2>
+            <p>
+                Trips represent a driving session from a starting point to a destination.
+                The API provides endpoints to start, end, and retrieve trips.
+            </p>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method post">POST</div>
+                    <div class="endpoint-path">/trips</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Start a new trip and get a trip ID for subsequent data submissions.
+                    </div>
+
+                    <h4>Request Body</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">start_location</td>
+                                <td class="param-type">Object</td>
+                                <td>
+                                    <span class="param-optional">Optional</span>
+                                    Starting location information (latitude, longitude, name)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Example Request</h4>
+                    <pre><code>{
+  "start_location": {
+    "latitude": 37.7749,
+    "longitude": -122.4194,
+    "name": "San Francisco"
+  }
+}</code></pre>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "message": "Trip started successfully",
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method put">PUT</div>
+                    <div class="endpoint-path">/trips/{trip_id}</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        End a trip and calculate final scores.
+                    </div>
+
+                    <h4>Path Parameters</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">trip_id</td>
+                                <td class="param-type">String</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    The ID of the trip to end
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Request Body</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">end_location</td>
+                                <td class="param-type">Object</td>
+                                <td>
+                                    <span class="param-optional">Optional</span>
+                                    Ending location information (latitude, longitude, name)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Example Request</h4>
+                    <pre><code>{
+  "end_location": {
+    "latitude": 37.7833,
+    "longitude": -122.4167,
+    "name": "San Francisco Downtown"
+  }
+}</code></pre>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "message": "Trip ended successfully",
+  "trip": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "start_time": 1620000000000,
+    "end_time": 1620001000000,
+    "start_location": {
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "name": "San Francisco"
+    },
+    "end_location": {
+      "latitude": 37.7833,
+      "longitude": -122.4167,
+      "name": "San Francisco Downtown"
+    },
+    "status": "completed",
+    "scores": {
+      "overall": 85.5,
+      "acceleration": 90.0,
+      "braking": 80.0,
+      "cornering": 85.0,
+      "phone_usage": 95.0,
+      "consistency": 78.0
+    },
+    "events": {
+      "harsh_acceleration": [
+        {
+          "timestamp": 1620000300000,
+          "value": 0.6,
+          "duration": 50
+        }
+      ],
+      "harsh_braking": [],
+      "harsh_cornering": [],
+      "phone_usage": [],
+      "speeding": []
+    },
+    "feedback": {
+      "summary": "Very good driving. You showed good control with a few areas for improvement.",
+      "strengths": [
+        "Excellent acceleration control - smooth and gradual acceleration patterns.",
+        "Minimal phone distractions - focused driving."
+      ],
+      "areas_for_improvement": [
+        "Reduce instances of harsh acceleration (detected 1 times)."
+      ],
+      "tips": [
+        "Gradually press the accelerator instead of pushing it down quickly."
+      ]
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method get">GET</div>
+                    <div class="endpoint-path">/trips/{trip_id}</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Get details for a specific trip.
+                    </div>
+
+                    <h4>Path Parameters</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">trip_id</td>
+                                <td class="param-type">String</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    The ID of the trip to retrieve
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "trip": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "start_time": 1620000000000,
+    "end_time": 1620001000000,
+    "start_location": {
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "name": "San Francisco"
+    },
+    "end_location": {
+      "latitude": 37.7833,
+      "longitude": -122.4167,
+      "name": "San Francisco Downtown"
+    },
+    "status": "completed",
+    "scores": {
+      "overall": 85.5,
+      "acceleration": 90.0,
+      "braking": 80.0,
+      "cornering": 85.0,
+      "phone_usage": 95.0,
+      "consistency": 78.0
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method get">GET</div>
+                    <div class="endpoint-path">/trips</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Get a list of all trips.
+                    </div>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "trips": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "start_time": 1620000000000,
+      "end_time": 1620001000000,
+      "status": "completed",
+      "scores": {
+        "overall": 85.5
+      }
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "start_time": 1620002000000,
+      "end_time": null,
+      "status": "active",
+      "scores": null
+    }
+  ]
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="data">
+            <h2>Data Submission</h2>
+            <p>
+                These endpoints allow you to submit motion sensor data for a trip.
+                Data can be submitted as individual points or in batches.
+            </p>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method post">POST</div>
+                    <div class="endpoint-path">/trips/{trip_id}/data</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Add a single data point to an active trip.
+                    </div>
+
+                    <h4>Path Parameters</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">trip_id</td>
+                                <td class="param-type">String</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    The ID of the trip to add data to
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Request Body</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">AccX</td>
+                                <td class="param-type">Number</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    X-axis accelerometer reading
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="param-name">AccY</td>
+                                <td class="param-type">Number</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    Y-axis accelerometer reading
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="param-name">AccZ</td>
+                                <td class="param-type">Number</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    Z-axis accelerometer reading
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="param-name">GyroX</td>
+                                <td class="param-type">Number</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    X-axis gyroscope reading
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="param-name">GyroY</td>
+                                <td class="param-type">Number</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    Y-axis gyroscope reading
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="param-name">GyroZ</td>
+                                <td class="param-type">Number</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    Z-axis gyroscope reading
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="param-name">Timestamp</td>
+                                <td class="param-type">Number</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    Time in milliseconds since epoch
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Example Request</h4>
+                    <pre><code>{
+  "AccX": -0.4024278,
+  "AccY": 0.40621805,
+  "AccZ": -0.42300892,
+  "GyroX": -0.053603426,
+  "GyroY": -0.0067195175,
+  "GyroZ": 0.0011453723,
+  "Timestamp": 1620000100000
+}</code></pre>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "message": "Data added successfully",
+  "realtime_feedback": {
+    "current_scores": {
+      "overall": 92.5,
+      "acceleration": 95.0,
+      "braking": 90.0,
+      "cornering": 95.0,
+      "phone_usage": 100.0,
+      "consistency": 85.0
+    },
+    "current_events": {
+      "harsh_acceleration": [],
+      "harsh_braking": [],
+      "harsh_cornering": [],
+      "phone_usage": [],
+      "speeding": []
+    },
+    "current_behavior": "NORMAL"
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method post">POST</div>
+                    <div class="endpoint-path">/trips/{trip_id}/data/batch</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Add multiple data points to an active trip in a single request.
+                    </div>
+
+                    <h4>Path Parameters</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">trip_id</td>
+                                <td class="param-type">String</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    The ID of the trip to add data to
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Request Body</h4>
+                    <p>An array of data points, each with the same structure as the single data point request.</p>
+
+                    <h4>Example Request</h4>
+                    <pre><code>[
+  {
+    "AccX": -0.4024278,
+    "AccY": 0.40621805,
+    "AccZ": -0.42300892,
+    "GyroX": -0.053603426,
+    "GyroY": -0.0067195175,
+    "GyroZ": 0.0011453723,
+    "Timestamp": 1620000100000
+  },
+  {
+    "AccX": -0.3924278,
+    "AccY": 0.41621805,
+    "AccZ": -0.41300892,
+    "GyroX": -0.043603426,
+    "GyroY": -0.0057195175,
+    "GyroZ": 0.0021453723,
+    "Timestamp": 1620000100100
+  }
+]</code></pre>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "message": "Added 2 data points successfully",
+  "realtime_feedback": {
+    "current_scores": {
+      "overall": 93.0,
+      "acceleration": 95.0,
+      "braking": 92.0,
+      "cornering": 95.0,
+      "phone_usage": 100.0,
+      "consistency": 85.0
+    },
+    "current_events": {
+      "harsh_acceleration": [],
+      "harsh_braking": [],
+      "harsh_cornering": [],
+      "phone_usage": [],
+      "speeding": []
+    },
+    "current_behavior": "NORMAL"
+  }
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="scores">
+            <h2>Scores</h2>
+            <p>
+                These endpoints provide access to trip scores and analysis.
+            </p>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method get">GET</div>
+                    <div class="endpoint-path">/trips/{trip_id}/scores</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Get scores for a specific trip.
+                    </div>
+
+                    <h4>Path Parameters</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">trip_id</td>
+                                <td class="param-type">String</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    The ID of the trip to get scores for
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000",
+  "scores": {
+    "overall": 85.5,
+    "acceleration": 90.0,
+    "braking": 80.0,
+    "cornering": 85.0,
+    "phone_usage": 95.0,
+    "consistency": 78.0
+  },
+  "is_final": true
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="model">
+            <h2>Model Management</h2>
+            <p>
+                These endpoints allow you to train and evaluate the machine learning model.
+            </p>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method post">POST</div>
+                    <div class="endpoint-path">/model/train</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Train the ML model using the provided training data.
+                    </div>
+
+                    <h4>Request Body</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">train_data_path</td>
+                                <td class="param-type">String</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    Path to the training data CSV file
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Example Request</h4>
+                    <pre><code>{
+  "train_data_path": "data/train_motion_data.csv"
+}</code></pre>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "message": "Model trained successfully",
+  "result": {
+    "accuracy": 0.92,
+    "classification_report": {
+      "NORMAL": {
+        "precision": 0.95,
+        "recall": 0.93,
+        "f1-score": 0.94,
+        "support": 150
+      },
+      "AGGRESSIVE": {
+        "precision": 0.88,
+        "recall": 0.90,
+        "f1-score": 0.89,
+        "support": 100
+      },
+      "SLOW": {
+        "precision": 0.92,
+        "recall": 0.94,
+        "f1-score": 0.93,
+        "support": 80
+      }
+    },
+    "model_path": "app/model/trained_models/driver_model.pkl"
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <div class="http-method post">POST</div>
+                    <div class="endpoint-path">/model/evaluate</div>
+                </div>
+                <div class="endpoint-body">
+                    <div class="endpoint-description">
+                        Evaluate the ML model using the provided test data.
+                    </div>
+
+                    <h4>Request Body</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="param-name">test_data_path</td>
+                                <td class="param-type">String</td>
+                                <td>
+                                    <span class="param-required">Required</span>
+                                    Path to the test data CSV file
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4>Example Request</h4>
+                    <pre><code>{
+  "test_data_path": "data/test_motion_data.csv"
+}</code></pre>
+
+                    <h4>Example Response</h4>
+                    <pre><code>{
+  "status": "success",
+  "message": "Model evaluated successfully",
+  "result": {
+    "accuracy": 0.90,
+    "classification_report": {
+      "NORMAL": {
+        "precision": 0.93,
+        "recall": 0.91,
+        "f1-score": 0.92,
+        "support": 120
+      },
+      "AGGRESSIVE": {
+        "precision": 0.86,
+        "recall": 0.88,
+        "f1-score": 0.87,
+        "support": 80
+      },
+      "SLOW": {
+        "precision": 0.90,
+        "recall": 0.92,
+        "f1-score": 0.91,
+        "support": 60
+      }
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="websockets">
+            <h2>WebSocket Interface</h2>
+            <p>
+                The system provides a WebSocket interface for real-time data streaming and feedback.
+                WebSockets are more efficient for high-frequency data transmission compared to REST API calls.
+            </p>
+
+            <h3>Connection</h3>
+            <p>Connect to the WebSocket server at:</p>
+            <pre><code>ws://localhost:5000/</code></pre>
+
+            <h3>Events</h3>
+
+            <div class="websocket-event">
+                <div class="event-name">connect</div>
+                <div class="event-direction client-to-server">Client to Server</div>
+                <p>Establish a connection to the WebSocket server.</p>
+                <h4>Response Events</h4>
+                <pre><code>// Server emits 'connection_status' event
+{
+  "status": "connected",
+  "client_id": "abcd1234"
+}</code></pre>
+            </div>
+
+            <div class="websocket-event">
+                <div class="event-name">join_trip</div>
+                <div class="event-direction client-to-server">Client to Server</div>
+                <p>Join a trip room to send data and receive updates for a specific trip.</p>
+                <h4>Payload</h4>
+                <pre><code>{
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+                <h4>Response Events</h4>
+                <pre><code>// Server emits 'join_status' event
+{
+  "status": "joined",
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+            </div>
+
+            <div class="websocket-event">
+                <div class="event-name">leave_trip</div>
+                <div class="event-direction client-to-server">Client to Server</div>
+                <p>Leave a trip room.</p>
+                <h4>Payload</h4>
+                <pre><code>{
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+                <h4>Response Events</h4>
+                <pre><code>// Server emits 'leave_status' event
+{
+  "status": "left",
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000"
+}</code></pre>
+            </div>
+
+            <div class="websocket-event">
+                <div class="event-name">send_data</div>
+                <div class="event-direction client-to-server">Client to Server</div>
+                <p>Send a single data point for real-time processing.</p>
+                <h4>Payload</h4>
+                <pre><code>{
+  "AccX": -0.4024278,
+  "AccY": 0.40621805,
+  "AccZ": -0.42300892,
+  "GyroX": -0.053603426,
+  "GyroY": -0.0067195175,
+  "GyroZ": 0.0011453723,
+  "Timestamp": 1620000100000
+}</code></pre>
+            </div>
+
+            <div class="websocket-event">
+                <div class="event-name">send_data_batch</div>
+                <div class="event-direction client-to-server">Client to Server</div>
+                <p>Send multiple data points for real-time processing.</p>
+                <h4>Payload</h4>
+                <pre><code>[
+  {
+    "AccX": -0.4024278,
+    "AccY": 0.40621805,
+    "AccZ": -0.42300892,
+    "GyroX": -0.053603426,
+    "GyroY": -0.0067195175,
+    "GyroZ": 0.0011453723,
+    "Timestamp": 1620000100000
+  },
+  {
+    "AccX": -0.3924278,
+    "AccY": 0.41621805,
+    "AccZ": -0.41300892,
+    "GyroX": -0.043603426,
+    "GyroY": -0.0057195175,
+    "GyroZ": 0.0021453723,
+    "Timestamp": 1620000100100
+  }
+]</code></pre>
+            </div>
+
+            <div class="websocket-event">
+                <div class="event-name">realtime_feedback</div>
+                <div class="event-direction server-to-client">Server to Client</div>
+                <p>Receive real-time feedback based on processed data.</p>
+                <h4>Payload</h4>
+                <pre><code>{
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000",
+  "timestamp": 1620000100500,
+  "analysis": {
+    "current_scores": {
+      "overall": 92.5,
+      "acceleration": 95.0,
+      "braking": 90.0,
+      "cornering": 95.0,
+      "phone_usage": 100.0,
+      "consistency": 85.0
+    },
+    "current_events": {
+      "harsh_acceleration": [],
+      "harsh_braking": [],
+      "harsh_cornering": [],
+      "phone_usage": [],
+      "speeding": []
+    },
+    "current_behavior": "NORMAL"
+  }
+}</code></pre>
+            </div>
+
+            <div class="websocket-event">
+                <div class="event-name">trip_update</div>
+                <div class="event-direction server-to-client">Server to Client</div>
+                <p>Receive updates about a trip (broadcast to all clients in the trip room).</p>
+                <h4>Payload</h4>
+                <pre><code>{
+  "trip_id": "550e8400-e29b-41d4-a716-446655440000",
+  "client_id": "abcd1234",
+  "timestamp": 1620000100500,
+  "analysis": {
+    "current_scores": {
+      "overall": 92.5,
+      "acceleration": 95.0,
+      "braking": 90.0,
+      "cornering": 95.0,
+      "phone_usage": 100.0,
+      "consistency": 85.0
+    },
+    "current_events": {
+      "harsh_acceleration": [],
+      "harsh_braking": [],
+      "harsh_cornering": [],
+      "phone_usage": [],
+      "speeding": []
+    },
+    "current_behavior": "NORMAL"
+  }
+}</code></pre>
+            </div>
+
+            <div class="websocket-event">
+                <div class="event-name">error</div>
+                <div class="event-direction server-to-client">Server to Client</div>
+                <p>Receive error messages from the server.</p>
+                <h4>Payload</h4>
+                <pre><code>{
+  "message": "Error message"
+}</code></pre>
+            </div>
+        </section>
+
+        <section id="errors">
+            <h2>Error Handling</h2>
+            <p>
+                The API uses standard HTTP status codes to indicate the success or failure of requests.
+                In case of an error, the response will include a JSON object with details about the error.
+            </p>
+
+            <h3>Error Response Format</h3>
+            <pre><code>{
+  "status": "error",
+  "message": "Error message"
+}</code></pre>
+
+            <h3>Common Error Codes</h3>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Status Code</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>400</td>
+                        <td>Bad Request - The request was invalid or cannot be served</td>
+                    </tr>
+                    <tr>
+                        <td>404</td>
+                        <td>Not Found - The requested resource does not exist</td>
+                    </tr>
+                    <tr>
+                        <td>500</td>
+                        <td>Internal Server Error - An error occurred on the server</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Driver Behavior Scoring API Documentation &copy; 2023</p>
+        </div>
+    </footer>
+
+    <script>
+        // Simple tab functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('nav a').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 70,
+                            behavior: 'smooth'
+                        });
+                        
+                        // Update active link
+                        document.querySelectorAll('nav a').forEach(a => {
+                            a.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    }
+                });
+            });
+            
+            // Highlight active section on scroll
+            window.addEventListener('scroll', function() {
+                const sections = document.querySelectorAll('section');
+                const navLinks = document.querySelectorAll('nav a');
+                
+                let currentSection = '';
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100;
+                    const sectionHeight = section.offsetHeight;
+                    
+                    if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+                        currentSection = section.getAttribute('id');
+                    }
+                });
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${currentSection}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

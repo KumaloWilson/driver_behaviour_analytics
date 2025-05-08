@@ -1,0 +1,141 @@
+from flask import Blueprint, jsonify, render_template, current_app, send_from_directory
+import os
+
+# Create a blueprint for API routes
+api_routes = Blueprint('api_routes', __name__)
+
+@api_routes.route('/', methods=['GET'])
+def index():
+    """API root endpoint."""
+    return jsonify({
+        'name': 'Driver Behavior Scoring API',
+        'version': '1.0.0',
+        'description': 'API for analyzing and scoring driver behavior',
+        'endpoints': {
+            'trips': '/api/trips',
+            'model': '/api/model',
+            'docs': '/api/docs'
+        }
+    })
+
+@api_routes.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint."""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'Service is running'
+    })
+
+@api_routes.route('/docs', methods=['GET'])
+def api_docs():
+    """API documentation endpoint."""
+    try:
+        # Try to render the template
+        return render_template('api_docs.html')
+    except Exception as e:
+        # If template rendering fails, serve a simple HTML response
+        current_app.logger.error(f"Error rendering template: {e}")
+        return f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Driver Behavior Scoring API Documentation</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; }}
+                h1 {{ color: #2563eb; }}
+                h2 {{ color: #1f2937; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-top: 30px; }}
+                code {{ background-color: #f1f5f9; padding: 2px 4px; border-radius: 4px; font-family: monospace; }}
+                pre {{ background-color: #f1f5f9; padding: 15px; border-radius: 6px; overflow-x: auto; }}
+                .endpoint {{ margin-bottom: 20px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; }}
+                .method {{ display: inline-block; padding: 5px 10px; border-radius: 4px; font-weight: bold; margin-right: 10px; }}
+                .get {{ background-color: #93c5fd; color: #1e40af; }}
+                .post {{ background-color: #a7f3d0; color: #065f46; }}
+                .put {{ background-color: #fcd34d; color: #92400e; }}
+            </style>
+        </head>
+        <body>
+            <h1>Driver Behavior Scoring API Documentation</h1>
+            <p>This API provides endpoints for analyzing and scoring driver behavior based on motion sensor data.</p>
+            
+            <h2>Base URL</h2>
+            <code>http://localhost:5000/api</code>
+            
+            <h2>Trip Management</h2>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/trips</code>
+                <p>Start a new trip and get a trip ID for subsequent data submissions.</p>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method put">PUT</span>
+                <code>/trips/{{trip_id}}</code>
+                <p>End a trip and calculate final scores.</p>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/trips/{{trip_id}}</code>
+                <p>Get details for a specific trip.</p>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/trips</code>
+                <p>Get a list of all trips.</p>
+            </div>
+            
+            <h2>Data Submission</h2>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/trips/{{trip_id}}/data</code>
+                <p>Add a single data point to an active trip.</p>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/trips/{{trip_id}}/data/batch</code>
+                <p>Add multiple data points to an active trip in a single request.</p>
+            </div>
+            
+            <h2>Scores</h2>
+            
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/trips/{{trip_id}}/scores</code>
+                <p>Get scores for a specific trip.</p>
+            </div>
+            
+            <h2>Model Management</h2>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/model/train</code>
+                <p>Train the ML model using the provided training data.</p>
+            </div>
+            
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/model/evaluate</code>
+                <p>Evaluate the ML model using the provided test data.</p>
+            </div>
+            
+            <h2>WebSocket Interface</h2>
+            <p>The system also provides a WebSocket interface for real-time data streaming at:</p>
+            <code>ws://localhost:5000/</code>
+            
+            <p>For more details, please refer to the README.md file.</p>
+        </body>
+        </html>
+        """
+
+@api_routes.route('/docs/css/api-docs.css', methods=['GET'])
+def api_docs_css():
+    """Serve the API documentation CSS file."""
+    try:
+        return send_from_directory(os.path.join(current_app.root_path, 'view/static/css'), 'api-docs.css')
+    except Exception as e:
+        current_app.logger.error(f"Error serving CSS file: {e}")
+        return "", 404
